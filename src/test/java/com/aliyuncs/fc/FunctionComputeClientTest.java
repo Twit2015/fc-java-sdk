@@ -2235,6 +2235,41 @@ public class FunctionComputeClientTest {
     }
 
     @Test
+    public void testVpcBinding() throws ClientException {
+        String serviceName = "testvpcbindforgithubtest";
+        cleanupService(serviceName);
+
+        // create service with role
+        CreateServiceRequest createSReq = new CreateServiceRequest();
+        createSReq.setServiceName(serviceName);
+        createSReq.setRole(ROLE);
+        CreateServiceResponse response = client.createService(createSReq);
+        assertEquals(serviceName, response.getServiceName());
+        assertFalse(Strings.isNullOrEmpty(response.getRequestId()));
+        assertFalse(Strings.isNullOrEmpty(response.getServiceId()));
+        assertEquals(ROLE, response.getRole());
+
+        // create vpc binding
+        CreateVpcBindingRequest request = new CreateVpcBindingRequest();
+        request.setServiceName(serviceName).setVpcId(VPC_ID);
+        CreateVpcBindingResponse createVpcBindingResponse = client.createVpcBinding(request);
+        assertEquals(200, createVpcBindingResponse.getStatus());
+
+        // list vpc binding
+        ListVpcBindingsRequest listVpcBindingsRequest = new ListVpcBindingsRequest();
+        listVpcBindingsRequest.setServiceName(serviceName);
+        ListVpcBindingsResponse listVpcBindingsResponse = client.listVpcBindings(listVpcBindingsRequest);
+        assertEquals(1, listVpcBindingsResponse.getVpcIDs().length);
+        assertEquals(VPC_ID, listVpcBindingsResponse.getVpcIDs()[0]);
+
+        // delete vpc binding
+        DeleteVpcBindingRequest deleteVpcBindingRequest = new DeleteVpcBindingRequest();
+        deleteVpcBindingRequest.setServiceName(serviceName).setVpcId(VPC_ID);
+        DeleteVpcBindingResponse deleteVpcBindingResponse = client.deleteVpcBinding(deleteVpcBindingRequest);
+        assertEquals(200, deleteVpcBindingResponse.getStatus());
+    }
+
+    @Test
     public void testCustomDomain()
         throws ClientException, JSONException, InterruptedException, ParseException, IOException {
         cleanupCustomDomain(CUSTOMDOMAIN_NAME);
